@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: production-postgres
+    environment:
+      POSTGRES_DB: production_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stackfood-network
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: production-localstack
+    environment:
+      - SERVICES=sns,sqs
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+    ports:
+      - "4566:4566"
+    volumes:
+      - "./localstack-init.sh:/etc/localstack/init/ready.d/init-aws.sh"
+    networks:
+      - stackfood-network
+
+  production-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: production-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=production_db;Username=postgres;Password=postgres
+      - AWS__Region=us-east-1
+      - AWS__ServiceURL=http://localstack:4566
+      - AWS__SNS__TopicArn=arn:aws:sns:us-east-1:000000000000:sns-production-events
+      - AWS__SQS__QueueUrl=http://localstack:4566/000000000000/sqs-production-orders
+    ports:
+      - "8082:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_started
+    networks:
+      - stackfood-network
+
+volumes:
+  postgres_data:
+
+networks:
+  stackfood-network:
+    driver: bridge
