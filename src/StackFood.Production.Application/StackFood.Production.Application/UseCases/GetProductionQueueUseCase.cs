@@ -1,17 +1,13 @@
 using StackFood.Production.Application.DTOs;
 using StackFood.Production.Application.Interfaces;
+using StackFood.Production.Application.UseCases.Mappers;
 using StackFood.Production.Domain.Enums;
 
 namespace StackFood.Production.Application.UseCases;
 
-public class GetProductionQueueUseCase
+public class GetProductionQueueUseCase(IProductionRepository repository)
 {
-    private readonly IProductionRepository _repository;
-
-    public GetProductionQueueUseCase(IProductionRepository repository)
-    {
-        _repository = repository;
-    }
+    private readonly IProductionRepository _repository = repository;
 
     public async Task<ProductionQueueDTO> ExecuteAsync()
     {
@@ -35,38 +31,12 @@ public class GetProductionQueueUseCase
 
         return new ProductionQueueDTO
         {
-            InQueue = inQueue.Select(MapToDTO).ToList(),
-            InProgress = inProgress.Select(MapToDTO).ToList(),
-            Ready = ready.Select(MapToDTO).ToList(),
+            InQueue = [.. inQueue.Select(ProductionOrderMapper.MapToDTO)],
+            InProgress = [.. inProgress.Select(ProductionOrderMapper.MapToDTO)],
+            Ready = [.. ready.Select(ProductionOrderMapper.MapToDTO)],
             TotalInQueue = inQueue.Count,
             TotalInProgress = inProgress.Count,
             TotalReady = ready.Count
-        };
-    }
-
-    private ProductionOrderDTO MapToDTO(Domain.Entities.ProductionOrder order)
-    {
-        return new ProductionOrderDTO
-        {
-            Id = order.Id,
-            OrderId = order.OrderId,
-            OrderNumber = order.OrderNumber,
-            Status = order.Status.ToString(),
-            Items = order.GetItems().Select(i => new ProductionItemDTO
-            {
-                ProductId = i.ProductId,
-                ProductName = i.ProductName,
-                ProductCategory = i.ProductCategory,
-                Quantity = i.Quantity,
-                PreparationNotes = i.PreparationNotes
-            }).ToList(),
-            Priority = order.Priority,
-            EstimatedTime = order.EstimatedTime,
-            CreatedAt = order.CreatedAt,
-            UpdatedAt = order.UpdatedAt,
-            StartedAt = order.StartedAt,
-            ReadyAt = order.ReadyAt,
-            DeliveredAt = order.DeliveredAt
         };
     }
 }
