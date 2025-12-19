@@ -13,14 +13,14 @@ public static class ProductionOrderMapper
             OrderId = order.OrderId,
             OrderNumber = order.OrderNumber,
             Status = order.Status.ToString(),
-            Items = order.GetItems().Select(i => new ProductionItemDTO
+            Items = [.. order.GetItems().Select(i => new ProductionItemDTO
             {
                 ProductId = i.ProductId,
                 ProductName = i.ProductName,
                 ProductCategory = i.ProductCategory,
                 Quantity = i.Quantity,
                 PreparationNotes = i.PreparationNotes
-            }).ToList(),
+            })],
             Priority = order.Priority,
             EstimatedTime = order.EstimatedTime,
             CreatedAt = order.CreatedAt,
