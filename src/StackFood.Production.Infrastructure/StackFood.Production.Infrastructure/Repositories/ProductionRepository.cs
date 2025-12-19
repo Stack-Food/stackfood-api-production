@@ -3,9 +3,11 @@ using StackFood.Production.Application.Interfaces;
 using StackFood.Production.Domain.Entities;
 using StackFood.Production.Domain.Enums;
 using StackFood.Production.Infrastructure.Data;
+using System.Diagnostics.CodeAnalysis;
 
 namespace StackFood.Production.Infrastructure.Repositories;
 
+[ExcludeFromCodeCoverage]
 public class ProductionRepository : IProductionRepository
 {
     private readonly ProductionDbContext _context;

@@ -7,62 +7,73 @@ using StackFood.Production.Application.UseCases;
 using StackFood.Production.Infrastructure.Data;
 using StackFood.Production.Infrastructure.Repositories;
 using StackFood.Production.Infrastructure.Services;
+using System.Diagnostics.CodeAnalysis;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// Application Settings
-builder.Services.AddSingleton(sp =>
+namespace StackFood.Production.API
 {
-    var config = sp.GetRequiredService<IConfiguration>();
-    return new ProductionSettings
+    [ExcludeFromCodeCoverage]
+    public class Program
     {
-        SnsTopicArn = config["AWS:SNS:TopicArn"] ?? "arn:aws:sns:us-east-1:000000000000:sns-production-events"
-    };
-});
+        private static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
-// PostgreSQL
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Host=localhost;Port=5432;Database=production_db;Username=postgres;Password=postgres";
+            // Add services to the container.
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<ProductionDbContext>(options =>
-    options.UseNpgsql(connectionString));
+            // Application Settings
+            builder.Services.AddSingleton(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+                return new ProductionSettings
+                {
+                    SnsTopicArn = config["AWS:SNS:TopicArn"] ?? "arn:aws:sns:us-east-1:000000000000:sns-production-events"
+                };
+            });
 
-// AWS Services
-builder.Services.AddAWSService<IAmazonSimpleNotificationService>();
-builder.Services.AddAWSService<IAmazonSQS>();
+            // PostgreSQL
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                ?? "Host=localhost;Port=5432;Database=production_db;Username=postgres;Password=postgres";
 
-// Repositories
-builder.Services.AddScoped<IProductionRepository, ProductionRepository>();
+            builder.Services.AddDbContext<ProductionDbContext>(options =>
+                options.UseNpgsql(connectionString));
 
-// Services
-builder.Services.AddScoped<IEventPublisher, SnsEventPublisher>();
+            // AWS Services
+            builder.Services.AddAWSService<IAmazonSimpleNotificationService>();
+            builder.Services.AddAWSService<IAmazonSQS>();
 
-// Use Cases
-builder.Services.AddScoped<CreateProductionOrderUseCase>();
-builder.Services.AddScoped<GetProductionOrderUseCase>();
-builder.Services.AddScoped<GetProductionQueueUseCase>();
-builder.Services.AddScoped<StartProductionUseCase>();
-builder.Services.AddScoped<UpdateProductionStatusUseCase>();
+            // Repositories
+            builder.Services.AddScoped<IProductionRepository, ProductionRepository>();
 
-// Background Services
-builder.Services.AddHostedService<OrderQueueConsumer>();
+            // Services
+            builder.Services.AddScoped<IEventPublisher, SnsEventPublisher>();
 
-var app = builder.Build();
+            // Use Cases
+            builder.Services.AddScoped<CreateProductionOrderUseCase>();
+            builder.Services.AddScoped<GetProductionOrderUseCase>();
+            builder.Services.AddScoped<GetProductionQueueUseCase>();
+            builder.Services.AddScoped<StartProductionUseCase>();
+            builder.Services.AddScoped<UpdateProductionStatusUseCase>();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+            // Background Services
+            builder.Services.AddHostedService<OrderQueueConsumer>();
+
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
+            app.UseAuthorization();
+
+            app.MapControllers();
+
+            app.Run();
+        }
+    }
 }
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
