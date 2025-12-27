@@ -1,11 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using StackFood.Production.Domain.Entities;
 using StackFood.Production.Domain.Enums;
-using System.Diagnostics.CodeAnalysis;
 
 namespace StackFood.Production.Infrastructure.Data;
 
-[ExcludeFromCodeCoverage]
 public class ProductionDbContext : DbContext
 {
     public ProductionDbContext(DbContextOptions<ProductionDbContext> options)

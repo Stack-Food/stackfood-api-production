@@ -1,8 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace StackFood.Production.Domain.Events;
 
-[ExcludeFromCodeCoverage]
 public class ProductionReadyEvent
 {
     public string EventType => "ProductionReady";

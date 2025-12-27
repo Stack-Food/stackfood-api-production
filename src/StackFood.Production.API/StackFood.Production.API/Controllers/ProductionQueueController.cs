@@ -1,12 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using StackFood.Production.Application.UseCases;
-using System.Diagnostics.CodeAnalysis;
 
 namespace StackFood.Production.API.Controllers;
 
 [ApiController]
 [Route("api/production/queue")]
-[ExcludeFromCodeCoverage]
 public class ProductionQueueController : ControllerBase
 {
     private readonly GetProductionQueueUseCase _getQueueUseCase;

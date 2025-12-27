@@ -1,7 +1,6 @@
 using StackFood.Production.Application.Configuration;
 using StackFood.Production.Application.DTOs;
 using StackFood.Production.Application.Interfaces;
-using StackFood.Production.Application.UseCases.Mappers;
 using StackFood.Production.Domain.Enums;
 using StackFood.Production.Domain.Events;
 
@@ -56,7 +55,7 @@ public class UpdateProductionStatusUseCase
         }
 
         var updated = await _repository.UpdateAsync(order);
-        return ProductionOrderMapper.MapToDTO(updated);
+        return MapToDTO(updated);
     }
 
     private async Task PublishStartedEventAsync(Domain.Entities.ProductionOrder order)
@@ -88,5 +87,31 @@ public class UpdateProductionStatusUseCase
             OrderNumber = order.OrderNumber
         };
         await _eventPublisher.PublishAsync(productionEvent, _topicArn);
+    }
+
+    private ProductionOrderDTO MapToDTO(Domain.Entities.ProductionOrder order)
+    {
+        return new ProductionOrderDTO
+        {
+            Id = order.Id,
+            OrderId = order.OrderId,
+            OrderNumber = order.OrderNumber,
+            Status = order.Status.ToString(),
+            Items = order.GetItems().Select(i => new ProductionItemDTO
+            {
+                ProductId = i.ProductId,
+                ProductName = i.ProductName,
+                ProductCategory = i.ProductCategory,
+                Quantity = i.Quantity,
+                PreparationNotes = i.PreparationNotes
+            }).ToList(),
+            Priority = order.Priority,
+            EstimatedTime = order.EstimatedTime,
+            CreatedAt = order.CreatedAt,
+            UpdatedAt = order.UpdatedAt,
+            StartedAt = order.StartedAt,
+            ReadyAt = order.ReadyAt,
+            DeliveredAt = order.DeliveredAt
+        };
     }
 }

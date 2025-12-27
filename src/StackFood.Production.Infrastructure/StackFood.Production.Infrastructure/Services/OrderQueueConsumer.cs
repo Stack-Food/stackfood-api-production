@@ -6,12 +6,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using StackFood.Production.Application.UseCases;
 using StackFood.Production.Application.DTOs;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace StackFood.Production.Infrastructure.Services;
 
-[ExcludeFromCodeCoverage]
 public class OrderQueueConsumer : BackgroundService
 {
     private readonly IAmazonSQS _sqsClient;
