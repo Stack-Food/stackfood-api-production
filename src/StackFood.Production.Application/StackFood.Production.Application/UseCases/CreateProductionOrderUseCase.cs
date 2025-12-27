@@ -1,17 +1,13 @@
 using StackFood.Production.Application.DTOs;
 using StackFood.Production.Application.Interfaces;
+using StackFood.Production.Application.UseCases.Mappers;
 using StackFood.Production.Domain.Entities;
 
 namespace StackFood.Production.Application.UseCases;
 
-public class CreateProductionOrderUseCase
+public class CreateProductionOrderUseCase(IProductionRepository repository)
 {
-    private readonly IProductionRepository _repository;
-
-    public CreateProductionOrderUseCase(IProductionRepository repository)
-    {
-        _repository = repository;
-    }
+    private readonly IProductionRepository _repository = repository;
 
     public async Task<ProductionOrderDTO> ExecuteAsync(CreateProductionOrderRequest request)
     {
@@ -36,32 +32,6 @@ public class CreateProductionOrderUseCase
 
         var created = await _repository.CreateAsync(order);
 
-        return MapToDTO(created);
-    }
-
-    private ProductionOrderDTO MapToDTO(ProductionOrder order)
-    {
-        return new ProductionOrderDTO
-        {
-            Id = order.Id,
-            OrderId = order.OrderId,
-            OrderNumber = order.OrderNumber,
-            Status = order.Status.ToString(),
-            Items = order.GetItems().Select(i => new ProductionItemDTO
-            {
-                ProductId = i.ProductId,
-                ProductName = i.ProductName,
-                ProductCategory = i.ProductCategory,
-                Quantity = i.Quantity,
-                PreparationNotes = i.PreparationNotes
-            }).ToList(),
-            Priority = order.Priority,
-            EstimatedTime = order.EstimatedTime,
-            CreatedAt = order.CreatedAt,
-            UpdatedAt = order.UpdatedAt,
-            StartedAt = order.StartedAt,
-            ReadyAt = order.ReadyAt,
-            DeliveredAt = order.DeliveredAt
-        };
+        return ProductionOrderMapper.MapToDTO(created);
     }
 }

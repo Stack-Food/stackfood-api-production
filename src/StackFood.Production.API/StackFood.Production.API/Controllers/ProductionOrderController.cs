@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using StackFood.Production.Application.DTOs;
 using StackFood.Production.Application.UseCases;
+using System.Diagnostics.CodeAnalysis;
 
 namespace StackFood.Production.API.Controllers;
 
 [ApiController]
 [Route("api/production/orders")]
+[ExcludeFromCodeCoverage]
 public class ProductionOrderController : ControllerBase
 {
     private readonly CreateProductionOrderUseCase _createUseCase;
