@@ -7,15 +7,15 @@ metadata:
     app.kubernetes.io/part-of: stackfood
 data:
   # Database Configuration
-  ConnectionStrings__DefaultConnection: "Host=stackfood-postgres.database.svc.cluster.local;Port=5432;Database=stackfood_production;Username=postgres"
+  ConnectionStrings__DefaultConnection: "Host=stackfood-db.c7u6s4akq7qg.us-east-1.rds.amazonaws.com;Port=5432;Database=stackfood_production;Username=stackfood;Password=postgres"
 
   # AWS SNS Configuration
   AWS__Region: "us-east-1"
   AWS__ServiceURL: ""
-  AWS__SNS__TopicArn: "REPLACE_WITH_SNS_PRODUCTION_EVENTS_TOPIC_ARN"
+  AWS__SNS__TopicArn: "arn:aws:sns:us-east-1:975050205506:stackfood-sns-production-topic"
 
   # AWS SQS Configuration
-  AWS__SQS__QueueUrl: "REPLACE_WITH_SQS_PRODUCTION_ORDERS_QUEUE_URL"
+  AWS__SQS__QueueUrl: "https://sqs.us-east-1.amazonaws.com/975050205506/stackfood-sqs-production-queue"
 
   # Application Settings
   ASPNETCORE_ENVIRONMENT: "Production"
