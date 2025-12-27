@@ -1,0 +1,6 @@
+@StackFood.Production.API_HostAddress = http://localhost:5114
+
+GET {{StackFood.Production.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
