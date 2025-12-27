@@ -6,10 +6,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using StackFood.Production.Application.UseCases;
 using StackFood.Production.Application.DTOs;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace StackFood.Production.Infrastructure.Services;
 
+[ExcludeFromCodeCoverage]
 public class OrderQueueConsumer : BackgroundService
 {
     private readonly IAmazonSQS _sqsClient;
@@ -46,7 +48,9 @@ public class OrderQueueConsumer : BackgroundService
 
                 var response = await _sqsClient.ReceiveMessageAsync(receiveRequest, stoppingToken);
 
-                foreach (var message in response.Messages)
+                if (response?.Messages?.Any() == true)
+                {
+                    foreach (var message in response.Messages)
                 {
                     try
                     {
@@ -65,6 +69,7 @@ public class OrderQueueConsumer : BackgroundService
                         _logger.LogError(ex, "Error processing message {MessageId}", message.MessageId);
                     }
                 }
+                }
             }
             catch (Exception ex)
             {
@@ -78,10 +83,23 @@ public class OrderQueueConsumer : BackgroundService
 
     private async Task ProcessMessageAsync(Message message)
     {
-        var orderMessage = JsonSerializer.Deserialize<OrderCreatedMessage>(message.Body);
+        // SNS wraps the message in a JSON envelope
+        var snsMessage = JsonSerializer.Deserialize<SnsMessageWrapper>(message.Body);
+        if (snsMessage?.Message == null)
+        {
+            _logger.LogWarning("Invalid SNS message format: {Body}", message.Body);
+            return;
+        }
+
+        // Deserialize the actual order event
+        var orderMessage = JsonSerializer.Deserialize<OrderCreatedMessage>(snsMessage.Message, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
         if (orderMessage == null)
         {
-            _logger.LogWarning("Failed to deserialize message: {Body}", message.Body);
+            _logger.LogWarning("Failed to deserialize order message: {Message}", snsMessage.Message);
             return;
         }
 
@@ -129,4 +147,13 @@ public class OrderItemMessage
     public string ProductCategory { get; set; } = string.Empty;
     public int Quantity { get; set; }
     public string? PreparationNotes { get; set; }
+}
+
+// Helper class to deserialize SNS message wrapper
+public class SnsMessageWrapper
+{
+    public string? Message { get; set; }
+    public string? MessageId { get; set; }
+    public string? TopicArn { get; set; }
+    public string? Type { get; set; }
 }

@@ -40,6 +40,10 @@ namespace StackFood.Production.API
             builder.Services.AddDbContext<ProductionDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
+            // Health Checks
+            builder.Services.AddHealthChecks()
+                .AddNpgSql(connectionString);
+
             // AWS Services
             builder.Services.AddAWSService<IAmazonSimpleNotificationService>();
             builder.Services.AddAWSService<IAmazonSQS>();
@@ -62,6 +66,22 @@ namespace StackFood.Production.API
 
             var app = builder.Build();
 
+            // Apply migrations automatically
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ProductionDbContext>();
+                try
+                {
+                    dbContext.Database.Migrate();
+                    Console.WriteLine("Migrations applied successfully");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error applying migrations: {ex.Message}");
+                    throw;
+                }
+            }
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -72,6 +92,9 @@ namespace StackFood.Production.API
             app.UseAuthorization();
 
             app.MapControllers();
+
+            // Health Check Endpoint
+            app.MapHealthChecks("/health");
 
             app.Run();
         }

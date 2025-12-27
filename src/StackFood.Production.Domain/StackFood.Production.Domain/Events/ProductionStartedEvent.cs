@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace StackFood.Production.Domain.Events;
 
+[ExcludeFromCodeCoverage]
 public class ProductionStartedEvent
 {
     public string EventType => "ProductionStarted";
