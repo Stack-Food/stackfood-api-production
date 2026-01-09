@@ -1,6 +1,7 @@
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using StackFood.Production.Application.Configuration;
 using StackFood.Production.Application.Interfaces;
 using StackFood.Production.Application.UseCases;
@@ -21,7 +22,13 @@ namespace StackFood.Production.API
             // Add services to the container.
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.AddServer(new OpenApiServer
+                {
+                    Url = "https://api.stackfood.com.br/production",
+                });
+            });
 
             // Application Settings
             builder.Services.AddSingleton(sp =>
