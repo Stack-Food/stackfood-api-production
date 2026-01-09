@@ -82,10 +82,13 @@ namespace StackFood.Production.API
                 }
             }
 
-            // Configure the HTTP request pipeline.
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UsePathBase("/production");
 
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/production/swagger/v1/swagger.json", "StackFood production API v1");
+            });
             app.UseAuthorization();
 
             app.MapControllers();
